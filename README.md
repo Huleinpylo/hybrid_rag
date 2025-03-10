@@ -15,7 +15,7 @@ A powerful Retrieval-Augmented Generation (RAG) system built with Python that le
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.12+
 - [Optional] GPU with CUDA support for faster processing
 
 ### Installation
