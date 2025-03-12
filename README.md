@@ -15,7 +15,7 @@ A powerful Retrieval-Augmented Generation (RAG) system built with Python that le
 
 ### Prerequisites
 
-- Python 3.12+
+- Python 3.8+
 - [Optional] GPU with CUDA support for faster processing
 
 ### Installation
@@ -31,6 +31,8 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+# install spacy lib needed
+python -m spacy download fr_core_news_lg
 ```
 
 ### Basic Usage

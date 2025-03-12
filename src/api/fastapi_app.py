@@ -1,18 +1,21 @@
-from fastapi import FastAPI, File, UploadFile, Form, Query, HTTPException, Depends, Body
+from fastapi import FastAPI, File, UploadFile, Form, Query, HTTPException, Depends,  BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Union
+from typing import  Optional, Dict, Any
 from pathlib import Path
 import os
 import uvicorn
-import asyncio
+
 
 # Import the RAG Orchestrator
 from orchastrator import RAGOrchestrator
 
 # Import configuration
 from config import logger
+
+# Import the Ollama endpoint registrar
+from direct_ollama_integration import setup_selfrag_endpoints
 
 # Define API models
 class SearchQuery(BaseModel):
@@ -42,8 +45,8 @@ orchestrator = RAGOrchestrator()
 # Create FastAPI app
 app = FastAPI(
     title="RAG API",
-    description="API for RAG (Retrieval Augmented Generation) system",
-    version="1.0.0"
+    description="API for RAG (Retrieval Augmented Generation) system with Ollama and Agentic RAG support",
+    version="1.1.0"
 )
 
 # Add CORS middleware
@@ -59,6 +62,8 @@ app.add_middleware(
 def get_orchestrator():
     return orchestrator
 
+
+# Define API routes
 @app.post("/documents/process", tags=["Documents"])
 async def process_document(
     file: UploadFile = File(...), 
@@ -229,6 +234,27 @@ async def root():
     """
     return {"message": "Welcome to RAG API. Visit /docs for API documentation."}
 
+# Register Ollama-specific endpoints
+try:
+    logger.debug("Setting up Ollama endpoints")
+    setup_selfrag_endpoints(app, get_orchestrator)
+    logger.debug("Ollama endpoints successfully set up")
+except Exception as e:
+    logger.error(f"Error setting up Ollama endpoints: {e}")
+    import traceback
+    logger.error(traceback.format_exc())
+
+# Additional debugging info
+logger.debug("=" * 50)
+logger.debug("FASTAPI APP ROUTES")
+logger.debug("=" * 50)
+for route in app.routes:
+    logger.debug(f"Route: {route.path}")
+    if hasattr(route, 'methods'):
+        logger.debug(f"  Methods: {route.methods}")
+    if hasattr(route, 'endpoint'):
+        logger.debug(f"  Endpoint: {route.endpoint.__name__}")
+
 # Error handlers
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
@@ -242,5 +268,5 @@ async def general_exception_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     
-    logger.info("Starting RAG API server")
+    logger.info("Starting RAG API server with Ollama and Agentic RAG support")
     uvicorn.run(app, host="0.0.0.0", port=8000)
